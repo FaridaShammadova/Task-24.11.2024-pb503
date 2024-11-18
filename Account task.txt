@@ -1,0 +1,267 @@
+using System;
+
+class HelloWorld {
+    static void Main() {
+        User user = new User("Farida Shammadova", "faridashammadova@gmail.com", "Smmdovafrd123");
+
+        Console.WriteLine("1. Show info");
+        Console.WriteLine("2. Create new group");
+        Console.WriteLine("0. Quit");
+
+        bool check = true;
+
+        while(check){
+            int choice = Convert.ToInt32(Console.ReadLine());
+
+            switch (choice){
+                case 1:
+                user.ShowInfo();
+                break;
+
+                case 2:
+                Group group = new Group("PB503", 17);
+                GroupMenu(group);
+                break;
+
+                case 0:
+                check = false;
+                break;
+
+                default:
+                Console.WriteLine("Wrong operation!");
+                break;
+            }
+        }
+    }
+
+    static void GroupMenu(Group group){
+        bool check = true;
+
+        while (check){
+            Console.WriteLine("1. Show all students");
+            Console.WriteLine("2. Get student by id");
+            Console.WriteLine("3. Add student");
+            Console.WriteLine("0. Quit");
+
+            int choice = Convert.ToInt32(Console.ReadLine());
+
+            switch (choice){
+                case 1:
+                if(group.GetAllStudents().Length == 0){
+                    Console.WriteLine("No students found.");
+                }else{
+                    foreach(var student in group.GetAllStudents())
+                    {
+                        student.StudentInfo();
+                    }
+                }
+                break;
+
+                case 2:
+                Console.WriteLine("Enter student id: ");
+                int id = Convert.ToInt32(Console.ReadLine());
+                Student wantedStudent = group.GetStudent(id);
+                
+                if(wantedStudent != null){
+                    Console.WriteLine($"Student fullname: {wantedStudent.Fullname}");
+                }else{
+                    Console.WriteLine("No student found.");
+                }
+                break;
+
+                case 3:
+                Console.WriteLine("Enter student's name: ");
+                string studentName = Console.ReadLine();
+                
+                if(string.IsNullOrWhiteSpace(studentName)){
+                    Console.WriteLine("Name is no true");
+                    break;
+                }
+                
+                Console.WriteLine("Enter student's point: ");
+                double point=Convert.ToDouble(Console.ReadLine());
+                
+                if(point<0){
+                    Console.WriteLine("The point cannot be negative.");
+                    break;
+                    }
+                    
+                    Student newStudent = new Student(studentName, point);
+                    group.AddStudent(newStudent);
+                    break;
+
+                case 0:
+                check = false;
+                break;
+
+                default:
+                Console.WriteLine("Wrong operation!");
+                break;
+            }
+        }
+    }
+}
+
+public interface IAccount{
+    bool PasswordChecker(string password);
+    void ShowInfo();
+}
+
+public class User: IAccount{
+    public static int Counter;
+    private int _id;
+    private string _password;
+
+    public string Fullname{get; set;}
+    public string Email{get; set;}
+
+    public string Password{
+        get=> _password;
+        
+        set{
+            if(PasswordChecker(value)){
+                _password = value;
+            }else{
+                Console.WriteLine("Password is not true!");
+            }
+        }
+    }
+
+    public int Id{
+        get => _id;
+
+        set{
+            _id = ++Counter;
+        }
+    }
+
+    public User(string fullname, string email, string password){
+        Fullname = fullname;
+        Email = email;
+        Password = password;
+        Id = Counter;
+    }
+
+    public bool PasswordChecker(string password){
+        bool isUpper = false;
+        bool isLower = false;
+        bool isDigit = false;
+
+        if(password.Length >= 8){
+            foreach(var chr in password){
+                if(char.IsUpper(chr)){
+                    isUpper = true;
+                }
+                if(char.IsLower(chr)){
+                    isLower = true;
+                }
+                if(char.IsDigit(chr)){
+                    isDigit = true;
+                }
+            }
+        }
+        return isUpper && isLower && isDigit;
+    }
+
+    public void ShowInfo(){
+        Console.WriteLine($"Id: {Id}, Fullname: {Fullname}, Email: {Email}");
+    }
+}
+
+public class Student{
+    public static int Counter;
+    private int _id;
+
+    public string Fullname{get; set;}
+    public double Point{get; set;}
+
+    public int Id{
+        get => _id;
+
+        set{
+            _id = ++Counter;
+        }
+    }
+
+    public Student(string fullname, double point){
+        Fullname = fullname;
+        Point = point;
+        Id = Counter;
+    }
+
+    public void StudentInfo(){
+        Console.WriteLine($"Id: {Id}, Fullname: {Fullname}, Point: {Point}");
+    }
+}
+
+public class Group{
+    private int _studentLimit;
+    private string _groupNo;
+
+    public string GroupNo{
+        get => _groupNo;
+        set {
+            if (CheckGroupNo(value)){
+                _groupNo = value;
+            }else{
+                Console.WriteLine("Group number is not true!");
+            }
+        }
+    }
+
+    public Student[] Students = new Student[0];
+
+    public int StudentLimit{
+        get => _studentLimit;
+        
+        set{
+            if(value>=5 && value<=18){
+                _studentLimit = value;
+            }else{
+                Console.WriteLine("Student limit is not true!");
+            }
+        }
+    }
+
+    public Group(string groupNo, int studentLimit){
+        GroupNo = groupNo;
+        StudentLimit = studentLimit;
+    }
+
+    public bool CheckGroupNo(string groupNo){
+        bool isUpper = false;
+        bool isDigit = false;
+
+        if (groupNo.Length == 5){
+            if(char.IsUpper(groupNo[0]) && char.IsUpper(groupNo[1])){
+                isUpper = true;
+            }
+            if(char.IsDigit(groupNo[2]) && char.IsDigit(groupNo[3]) && char.IsDigit(groupNo[4])){
+                isDigit = true;
+            }
+        }
+        return isUpper && isDigit;
+    }
+
+    public void AddStudent(Student student){
+        if (Students.Length < StudentLimit){
+            Array.Resize(ref Students, Students.Length + 1);
+            Students[^1] = student;
+        }else{
+            Console.WriteLine("Group is full!");
+        }
+    }
+
+    public Student GetStudent(int id){
+        foreach (var student in Students){
+            if(student.Id == id){
+                return student;
+            }
+        }
+        return null;
+    }
+
+    public Student[] GetAllStudents(){
+        return Students;
+    }
+}
